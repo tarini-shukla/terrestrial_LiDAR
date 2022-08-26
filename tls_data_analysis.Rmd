@@ -1,0 +1,143 @@
+---
+title: "TLS data analysis"
+author: "Tarini"
+date: '2022-06-02'
+output: html_document
+---
+
+install required packages
+
+```{r}
+install.packages("raster")
+install.packages("rgdal")
+install.packages("sp")
+```
+
+install library
+```{r}
+library(raster)
+library(rgdal)
+```
+
+Analyze TLS DEM
+
+Upload TLS DEM
+
+```{r}
+b = raster("C:/Users/tarin/Documents/santee/aerial_lidar/Extract_Idw_9B.tif")
+```
+
+```{r}
+plot(b)
+```
+
+
+
+Distribution of elevation/values
+```{r}
+hist(b, main="Distribution of elevation values", col="purple")
+```
+
+
+Find 50th percentile elevation value
+```{r}
+quantile(b)
+quantile(b, probs = c(0.70), type=7,names = FALSE)
+```
+
+
+plot elevation upto 70 percentile
+
+```{r}
+image(b, zlim=c(0, 0.8102))
+```
+
+Histogram with custom breaks
+```{r}
+hist(b,
+     breaks = c(-1, 0, 0.5, 1, 1.5, 2, 3),
+     main = "Terrestrial Lidar Histogram with custom breaks",
+     xlab = "Elevation (m)",
+     ylab = "Number of pixels",
+     col = "purple")
+```
+## Create classification matrix
+#-1-0.0 = NA
+## 0 to 0.86 = Depressions/channel
+## >1 = hummocks
+
+```{r}
+reclass_tls <- c(-1, 0.0, NA,
+                0.0, 0.86, 1,
+                0.86, 0.91, 2,
+                0.91, Inf, 3)
+reclass_tls
+```
+
+# reshape the object into a matrix with columns and rows
+
+```{r}
+reclass_tls_m <- matrix(reclass_tls,
+                ncol = 3,
+                byrow = TRUE)
+reclass_tls_m
+
+```
+## Reclassify raster
+# reclassify the raster using the reclass object - reclass_m
+
+
+```{r}
+microtopo_tls <- reclassify(b, reclass_tls_m)
+```
+
+
+## distribution of pixels as per class
+## view reclassified data
+
+```{r}
+barplot(microtopo_tls, main = "Number of pixels in each class")
+```
+
+
+## Assign pixels with 0 value as NA
+```{r}
+microtopo_tls[microtopo_tls == 0] <- NA
+```
+
+
+## Plot reclassified data
+
+```{r}
+plot(microtopo_tls, col = c("blue", "green", "purple"),
+     main = "Classified microtopography \n depressions, lawns, hummocks")
+```
+
+## Lets explore it with Whitebox GAT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
